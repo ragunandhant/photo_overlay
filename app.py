@@ -122,15 +122,30 @@ def main():
     background_opacity = st.sidebar.slider("Background opacity (%)", min_value=0, max_value=100, value=50)
     background_padding = st.sidebar.slider("Background padding", min_value=0, max_value=30, value=10)
     
+    # Initialize session state for file uploader
+    if 'clear_files' not in st.session_state:
+        st.session_state.clear_files = False
+    
     # File uploader
     uploaded_files = st.file_uploader(
         "Choose image files",
         type=['png', 'jpg', 'jpeg'],
         accept_multiple_files=True,
-        help="You can upload multiple images at once"
+        help="You can upload up to 15 images at once",
+        key="file_uploader" if not st.session_state.clear_files else "file_uploader_cleared"
     )
     
+    # Clear all button
     if uploaded_files:
+        if st.button("🗑️ Clear All Images", type="secondary"):
+            st.session_state.clear_files = not st.session_state.clear_files
+            st.rerun()
+    
+    if uploaded_files:
+        if len(uploaded_files) > 15:
+            st.error(f"⚠️ You have uploaded {len(uploaded_files)} images. Please upload no more than 15 images at once.")
+            st.stop()
+        
         st.success(f"Uploaded {len(uploaded_files)} image(s)")
         
         # Process images
@@ -228,22 +243,6 @@ def main():
     else:
         st.info("👆 Please upload one or more image files to get started!")
         
-        # Show example
-        st.subheader("Example")
-        st.markdown("""
-        This app will:
-        1. Take your uploaded images
-        2. Add the specified text continuously across the width at a given height from the bottom
-        3. Provide both individual downloads and a ZIP file with all processed images
         
-        **Features:**
-        - Upload multiple images at once
-        - Customize text, font size, and color
-        - Adjust height from base of the image
-        - Text repeats continuously across the entire width
-        - Customizable background: color, opacity, padding, or no background
-        - Download processed images individually or as a ZIP file
-        """)
-
 if __name__ == "__main__":
     main()
